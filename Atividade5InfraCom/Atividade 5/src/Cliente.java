@@ -12,10 +12,15 @@ import javax.swing.JScrollPane;
 import java.awt.Color;
 import java.awt.Toolkit;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
@@ -43,9 +48,12 @@ public class Cliente{
 	private static JLabel lblNewLabel_4;
 	private static JButton btnNewButton_3;
 	private static JLabel lblNewLabel_5;
+	static ServerSocket clienteTCP;
 	static DatagramSocket usuario;
-	static int portaEnvio = 23000;
+	static int myPorta = 23000;
+	static int serverPorta = 23001;
 	static InetAddress ip;
+	static int opcao;
 	
 	
 	/**
@@ -104,7 +112,7 @@ public class Cliente{
 		btnNewButton = new JButton("N\u00FAmero de pacotes");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
+				opcao = 1;
 			}
 		});
 		btnNewButton.setBackground(Color.LIGHT_GRAY);
@@ -114,7 +122,7 @@ public class Cliente{
 		btnNewButton_1 = new JButton("Total de bytes");
 		btnNewButton_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
+				opcao = 2;
 			}
 		});
 		btnNewButton_1.setBackground(Color.LIGHT_GRAY);
@@ -124,7 +132,7 @@ public class Cliente{
 		btnNewButton_2 = new JButton("Dura\u00E7\u00E3o do teste");
 		btnNewButton_2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
+				opcao = 3;
 			}
 		});
 		btnNewButton_2.setBackground(Color.LIGHT_GRAY);
@@ -157,12 +165,38 @@ public class Cliente{
 		contentPane.add(lblNewLabel_5);
 		
 		cliente.setVisible(true);
-		usuario = new DatagramSocket(portaEnvio);
-		ip = InetAddress.getByName("localhost");//por enquanto, local host s� pra testes
+		clienteTCP = new ServerSocket(myPorta);
+		usuario = new DatagramSocket(myPorta);
+		ip = InetAddress.getByName("localhost");//por enquanto, local host só pra testes
 		
 		
 	}
 
+	public static Runnable TCP = new Runnable(){
+		public void run() {
+		String aux = textField.getText() + textField_1.getText() + textField_2.getText() + textField_3.getText() + Integer.toString(opcao) + textField_4.getText();
+		byte[] cabecalho = new byte[aux.length()+1];
+		ByteBuffer auxiliar = ByteBuffer.wrap(cabecalho);
+		BitSet protocolo = new BitSet(8);
+		protocolo.set(2);
+		auxiliar.put(protocolo.toByteArray());
+		auxiliar.put(aux.getBytes());
+		cabecalho = auxiliar.array();
+		Socket socket;
+		try {
+			socket = new Socket(ip,serverPorta);
+			DataOutputStream saida = new DataOutputStream(socket.getOutputStream());
+			saida.write(cabecalho);
+			InputStreamReader entrada = new InputStreamReader(socket.getInputStream());
+			BufferedReader bufferResposta = new BufferedReader(entrada);
+			String resposta = bufferResposta.readLine();
+			
+		} catch (IOException e) {	
+			e.printStackTrace();
+		}
+		}
+		
+	};
 	public static void emissor () throws IOException { //Num de pacotes
 		String aux = textField_4.getText();
 		int qtdPacotes = Integer.parseInt(aux);
@@ -175,11 +209,11 @@ public class Cliente{
 			buff.put(cabecalho.toByteArray());
 			buff.put(auxiliar);			
 			dados = buff.array();
-			DatagramPacket enviarDados = new DatagramPacket(dados, dados.length);
+			DatagramPacket enviarDados = new DatagramPacket(dados, dados.length, ip, serverPorta);
 			usuario.send(enviarDados);			
 		}
 		
-	}
+	};
 	/**
 	 * Create the frame.
 	 */
