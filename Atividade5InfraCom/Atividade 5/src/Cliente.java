@@ -209,12 +209,17 @@ public class Cliente{
 	public static void emissor () throws IOException { //Num de pacotes
 		String aux = textField_4.getText();
 		int qtdPacotes = Integer.parseInt(aux);
+		//int contador = 0;
 		for(int i=0; i<qtdPacotes; i++) {
 			byte[] dados = new byte[64];
 			byte[] auxiliar= new byte[63];
 			ByteBuffer buff = ByteBuffer.wrap(dados);
 			BitSet cabecalho = new BitSet(8);
-			cabecalho.set(0);
+			//cabecalho.set(0);
+			//if (contador == 4)
+			//	contador = 0;
+			//BitSet sequencia = BitSet.valueOf(contador);
+			//contador++;
 			buff.put(cabecalho.toByteArray());
 			buff.put(auxiliar);			
 			dados = buff.array();
