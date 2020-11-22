@@ -1,7 +1,9 @@
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
@@ -50,15 +52,28 @@ public class Servidor{
 		contentPane.add(lblNewLabel_1);
 		servidor.setVisible(true);
 		tcpSocket = new ServerSocket(porta);
+		new Thread(receptorTCP).start();
 	}
 	
 	public static Runnable receptorTCP = new Runnable() {
 		public void run() {
 			try {
 				Socket socketRecebimento = tcpSocket.accept();
+				//InputStream is = socketRecebimento.getInputStream();
+				//ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+				//byte [] armazenador = new byte[1024];
+				//int nRead;
+				//while((nRead = is.read(armazenador,1,armazenador.length))!=-1) {
+				//	buffer.write(armazenador,1,nRead);
+				//}
+				//String mensagem = armazenador.toString().trim();
+														
 				InputStreamReader entrada = new InputStreamReader(socketRecebimento.getInputStream());
 				BufferedReader le = new BufferedReader(entrada);
-				
+				String mensagem = le.readLine();
+				mensagem = mensagem + "\n" + le.readLine()+ "\n" + le.readLine()+ "\n" + le.readLine()+ "\n" + le.readLine()+ "\n" + le.readLine() ;
+				textPane.setText(mensagem.substring(1));
+				System.out.print("panda123");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
