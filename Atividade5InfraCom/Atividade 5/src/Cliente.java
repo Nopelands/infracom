@@ -54,7 +54,8 @@ public class Cliente{
 	static int serverPorta = 23001;
 	static InetAddress ip;
 	static int opcao;
-	
+	static boolean emCurso = true;
+	static int contadorPacotes = 0;
 	
 	/**
 	 * Launch the application.
@@ -179,7 +180,6 @@ public class Cliente{
 
 	public static Runnable TCP = new Runnable(){
 		public void run() {
-		//String aux = "batata\n";
 		String aux = textField.getText() +"\n"+ textField_1.getText() +"\n"+  textField_2.getText() + "\n"+ textField_3.getText() +"\n"+ Integer.toString(opcao) +"\n"+ textField_4.getText()+ "\n";
 		byte[] cabecalho = new byte[aux.length()+1];
 		ByteBuffer auxiliar = ByteBuffer.wrap(cabecalho);
@@ -188,7 +188,6 @@ public class Cliente{
 		auxiliar.put(protocolo.toByteArray());
 		auxiliar.put(aux.getBytes());
 		cabecalho = auxiliar.array();
-		System.out.print(cabecalho[0]);
 		String mensagem = new String(cabecalho);
 		Socket socket;
 		try {
@@ -197,11 +196,20 @@ public class Cliente{
 			saida.write(mensagem.getBytes());
 			InputStreamReader entrada = new InputStreamReader(socket.getInputStream());
 			BufferedReader le = new BufferedReader(entrada);
-			emissor();
+			if(opcao==1) {
+				emissorNum();
+			}else if(opcao==2){
+				emissorBytes();
+			}else {
+				emissorTempo();
+			}
+			while(emCurso) {
+				
+			}
+			DataOutputStream sinalTeste = new DataOutputStream(socket.getOutputStream());
+			sinalTeste.write("2".getBytes());
 			System.out.print("kakaka");
-			//InputStreamReader entrada = new InputStreamReader(socket.getInputStream());
-			//BufferedReader bufferResposta = new BufferedReader(entrada);
-			//String resposta = bufferResposta.readLine();
+			
 			
 		} catch (IOException e) {	
 			e.printStackTrace();
@@ -209,36 +217,129 @@ public class Cliente{
 		}
 		
 	};
-	public static void emissor () throws IOException { //Num de pacotes
+	public static void emissorNum () throws IOException { 
 		String aux = textField_4.getText();
 		int qtdPacotes = Integer.parseInt(aux);
 		System.out.println(qtdPacotes);
-		long valor = 0L;
+		int valor = 0;
 		for(int i=0; i<qtdPacotes; i++) {
 			byte[] dados = new byte[64];
 			byte[] auxiliar= new byte[63];
 			ByteBuffer buff = ByteBuffer.wrap(dados);
 			BitSet cabecalho = new BitSet(8);
 			cabecalho.set(0);
-			int index = 3;
-			while (valor != 0L) {
-				if (valor % 2L != 0) {
-					cabecalho.set(index);
-				}
-				++index;
-				valor = valor >>> 1;
+			switch(valor) {
+			
+			case 1:
+				cabecalho.set(3);
+				break;
+			case 2:
+				cabecalho.set(4);
+				break;
+			case 3:
+				cabecalho.set(3);
+				cabecalho.set(4);
+				break;
+			default:
 			}
-			valor = valor + 1L;
-			if(valor==4L) {
-				valor = 0L;
+			System.out.println(valor + " "+ cabecalho);
+			valor++;
+			if(valor==4) {
+				valor = 0;
 			}
+			
 			buff.put(cabecalho.toByteArray());
 			buff.put(auxiliar);			
 			dados = buff.array();
 			DatagramPacket enviarDados = new DatagramPacket(dados, dados.length, ip, serverPorta);
-			usuario.send(enviarDados);			
+			usuario.send(enviarDados);
+			contadorPacotes++;
 		}
+		emCurso = false;
 		
+		
+	};
+	public static void emissorBytes() throws IOException{
+		String aux = textField_4.getText();
+		int qtdBytes = Integer.parseInt(aux);
+		System.out.println(qtdBytes);
+		int valor = 0;
+		while(qtdBytes>0) {
+			byte[] dados = new byte[64];
+			byte[] auxiliar= new byte[63];
+			ByteBuffer buff = ByteBuffer.wrap(dados);
+			BitSet cabecalho = new BitSet(8);
+			cabecalho.set(0);
+			switch(valor) {
+			
+			case 1:
+				cabecalho.set(3);
+				break;
+			case 2:
+				cabecalho.set(4);
+				break;
+			case 3:
+				cabecalho.set(3);
+				cabecalho.set(4);
+				break;
+			default:
+			}
+			System.out.println(valor + " "+ cabecalho);
+			valor++;
+			if(valor==4) {
+				valor = 0;
+			}
+			
+			buff.put(cabecalho.toByteArray());
+			buff.put(auxiliar);			
+			dados = buff.array();
+			DatagramPacket enviarDados = new DatagramPacket(dados, dados.length, ip, serverPorta);
+			usuario.send(enviarDados);	
+			qtdBytes-=Integer.parseInt(textField_3.getText());
+			contadorPacotes++;
+		}
+		emCurso = false;
+	};
+	
+	public static void emissorTempo() throws IOException{
+		String aux = textField_4.getText();
+		int tempoTeste = Integer.parseInt(aux)*1000;
+		long tempoInicial = System.currentTimeMillis();
+		int valor = 0;
+		while(System.currentTimeMillis()-tempoInicial<tempoTeste) {
+			byte[] dados = new byte[64];
+			byte[] auxiliar= new byte[63];
+			ByteBuffer buff = ByteBuffer.wrap(dados);
+			BitSet cabecalho = new BitSet(8);
+			cabecalho.set(0);
+			switch(valor) {
+			
+			case 1:
+				cabecalho.set(3);
+				break;
+			case 2:
+				cabecalho.set(4);
+				break;
+			case 3:
+				cabecalho.set(3);
+				cabecalho.set(4);
+				break;
+			default:
+			}
+			System.out.println(valor + " "+ cabecalho);
+			valor++;
+			if(valor==4) {
+				valor = 0;
+			}
+			
+			buff.put(cabecalho.toByteArray());
+			buff.put(auxiliar);			
+			dados = buff.array();
+			DatagramPacket enviarDados = new DatagramPacket(dados, dados.length, ip, serverPorta);
+			usuario.send(enviarDados);	
+			contadorPacotes++;
+		}
+		emCurso = false;
 	};
 	
 }

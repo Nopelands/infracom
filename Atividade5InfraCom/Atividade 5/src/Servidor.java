@@ -35,6 +35,7 @@ public class Servidor {
 	static int contadorPacotes = 0;
 	static long minimo = 999999999;
 	static long maximo = 0;
+	static boolean emCurso = true;
 
 	public static void main(String[] args) throws IOException {
 		servidor = new JFrame();
@@ -70,15 +71,6 @@ public class Servidor {
 		public void run() {
 			try {
 				Socket socketRecebimento = tcpSocket.accept();
-				// InputStream is = socketRecebimento.getInputStream();
-				// ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-				// byte [] armazenador = new byte[1024];
-				// int nRead;
-				// while((nRead = is.read(armazenador,1,armazenador.length))!=-1) {
-				// buffer.write(armazenador,1,nRead);
-				// }
-				// String mensagem = armazenador.toString().trim();
-
 				InputStreamReader entrada = new InputStreamReader(socketRecebimento.getInputStream());
 				BufferedReader le = new BufferedReader(entrada);
 				String mensagem = le.readLine();
@@ -93,6 +85,10 @@ public class Servidor {
 				new Thread(receptorUDP).start();
 				DataOutputStream saida = new DataOutputStream(socketRecebimento.getOutputStream());
 				saida.write("1".getBytes());
+				InputStreamReader sinalTeste = new InputStreamReader(socketRecebimento.getInputStream());
+				BufferedReader le2 = new BufferedReader(sinalTeste);
+				String mensagem2 = le2.readLine();
+				emCurso = false;
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -100,47 +96,57 @@ public class Servidor {
 		}
 	};
 
-	public static Runnable receptorUDP = new Runnable() { // Qtd pacotes
+	public static Runnable receptorUDP = new Runnable() { 
 		public void run() {
 			long anterior = -2;
 			long tempoAnterior = -1;
 			long total = 0;
 			int contadorIntervalos = 0;
-			if (opcao == 1) {
-				for (int i = 0; i < Integer.parseInt(digiteAqui); i++) {
-					byte[] armazenador = new byte[qtdBytes];
-					DatagramPacket pacoteRecebido = new DatagramPacket(armazenador, armazenador.length);
-					try {
-						recebendo.receive(pacoteRecebido);
-						long tempo = System.currentTimeMillis();
-						contadorPacotes++;
-						BitSet cabecalho = new BitSet(armazenador[0]);
-						long value = 0L;
-						for (int j = 3; j < cabecalho.length(); ++j) {
-							value += cabecalho.get(j) ? (1L << j) : 0L;
+			
+			while (emCurso) {
+				byte[] armazenador = new byte[qtdBytes];
+				DatagramPacket pacoteRecebido = new DatagramPacket(armazenador, armazenador.length);
+				try {
+					recebendo.receive(pacoteRecebido);
+					long tempo = System.currentTimeMillis();
+					contadorPacotes++;
+					byte[] auxCabeca = { armazenador[0] };
+					BitSet cabecalho = BitSet.valueOf(auxCabeca);
+					System.out.println(cabecalho);
+					int value = 0;
+					if (cabecalho.get(3)) {
+						if (cabecalho.get(4)) {
+							value = 3;
+						} else {
+							value = 1;
 						}
-
-						if ((value == anterior + 1) || (value == 0 && anterior == 3)) {
-							if (minimo > tempo - tempoAnterior) {
-								minimo = tempo - tempoAnterior;
-							}
-							if (maximo < tempo - tempoAnterior) {
-								maximo = tempo - tempoAnterior;
-							}
-							total += tempo - tempoAnterior;
-							contadorIntervalos++;
-							System.out.println(contadorIntervalos);
-						}
-						anterior = value;
-						tempoAnterior = tempo;
-						System.out.println("ChegueiAqui");
-					} catch (IOException e) {
-						e.printStackTrace();
+					} else if (cabecalho.get(4)) {
+						value = 2;
 					}
+
+					if ((value == anterior + 1) || (value == 0 && anterior == 3)) {
+						if (minimo > tempo - tempoAnterior) {
+							minimo = tempo - tempoAnterior;
+						}
+						if (maximo < tempo - tempoAnterior) {
+							maximo = tempo - tempoAnterior;
+						}
+						total += tempo - tempoAnterior;
+						contadorIntervalos++;
+
+					}
+					System.out.println(contadorIntervalos + " " + value);
+					anterior = value;
+					tempoAnterior = tempo;
+					System.out.println("ChegueiAqui");
+					media = (double) total / contadorIntervalos;
+					System.out.println(minimo + "\n" + maximo + "\n" + media);
+
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
-				media = (double) total / contadorIntervalos;
-				System.out.println(minimo + "\n" + maximo + "\n" + media);
 			}
+			
 		}
 	};
 }
