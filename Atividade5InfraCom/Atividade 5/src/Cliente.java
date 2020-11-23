@@ -96,7 +96,7 @@ public class Cliente{
 		contentPane.add(lblNewLabel_2);
 		
 		textField_2 = new JTextField();
-		textField_2.setBounds(424, 33, 86, 20);
+		textField_2.setBounds(90, 36, 119, 20);
 		contentPane.add(textField_2);
 		textField_2.setColumns(10);
 		
@@ -105,7 +105,7 @@ public class Cliente{
 		contentPane.add(lblNewLabel_3);
 		
 		textField_3 = new JTextField();
-		textField_3.setBounds(92, 36, 114, 20);
+		textField_3.setBounds(426, 33, 84, 20);
 		contentPane.add(textField_3);
 		textField_3.setColumns(10);
 		
@@ -195,6 +195,9 @@ public class Cliente{
 			socket = new Socket(ip,serverPorta);
 			DataOutputStream saida = new DataOutputStream(socket.getOutputStream());
 			saida.write(mensagem.getBytes());
+			InputStreamReader entrada = new InputStreamReader(socket.getInputStream());
+			BufferedReader le = new BufferedReader(entrada);
+			emissor();
 			System.out.print("kakaka");
 			//InputStreamReader entrada = new InputStreamReader(socket.getInputStream());
 			//BufferedReader bufferResposta = new BufferedReader(entrada);
@@ -209,17 +212,26 @@ public class Cliente{
 	public static void emissor () throws IOException { //Num de pacotes
 		String aux = textField_4.getText();
 		int qtdPacotes = Integer.parseInt(aux);
-		//int contador = 0;
+		System.out.println(qtdPacotes);
+		long valor = 0L;
 		for(int i=0; i<qtdPacotes; i++) {
 			byte[] dados = new byte[64];
 			byte[] auxiliar= new byte[63];
 			ByteBuffer buff = ByteBuffer.wrap(dados);
 			BitSet cabecalho = new BitSet(8);
-			//cabecalho.set(0);
-			//if (contador == 4)
-			//	contador = 0;
-			//BitSet sequencia = BitSet.valueOf(contador);
-			//contador++;
+			cabecalho.set(0);
+			int index = 3;
+			while (valor != 0L) {
+				if (valor % 2L != 0) {
+					cabecalho.set(index);
+				}
+				++index;
+				valor = valor >>> 1;
+			}
+			valor = valor + 1L;
+			if(valor==4L) {
+				valor = 0L;
+			}
 			buff.put(cabecalho.toByteArray());
 			buff.put(auxiliar);			
 			dados = buff.array();
