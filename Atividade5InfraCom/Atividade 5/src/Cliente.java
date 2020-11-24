@@ -27,7 +27,7 @@ import java.nio.ByteBuffer;
 import java.awt.event.ActionEvent;
 import java.util.BitSet;
 
-public class Cliente{
+public class Cliente {
 
 	private static JFrame cliente;
 	private static JPanel contentPane;
@@ -56,15 +56,17 @@ public class Cliente{
 	static int opcao;
 	static boolean emCurso = true;
 	static int contadorPacotes = 0;
-	
+	static int qtdBytesEnviados = 0;
+
 	/**
 	 * Launch the application.
-	 * @throws SocketException 
-	 * @throws UnknownHostException 
+	 * 
+	 * @throws SocketException
+	 * @throws UnknownHostException
 	 */
 	public static void main(String[] args) throws IOException {
 		cliente = new JFrame();
-		
+
 		cliente.setTitle("Cliente");
 		cliente.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		cliente.setBounds(100, 100, 536, 356);
@@ -73,43 +75,43 @@ public class Cliente{
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		cliente.setContentPane(contentPane);
 		contentPane.setLayout(null);
-		
+
 		lblNewLabel = new JLabel("Porta de Origem");
 		lblNewLabel.setBounds(10, 11, 84, 14);
 		contentPane.add(lblNewLabel);
-		
+
 		textField = new JTextField();
 		textField.setBounds(104, 8, 84, 20);
 		contentPane.add(textField);
 		textField.setColumns(10);
-		
+
 		lblNewLabel_1 = new JLabel("Porta de Destino");
 		lblNewLabel_1.setBounds(246, 11, 84, 14);
 		contentPane.add(lblNewLabel_1);
-		
+
 		textField_1 = new JTextField();
 		textField_1.setBounds(340, 8, 86, 20);
 		contentPane.add(textField_1);
 		textField_1.setColumns(10);
-		
+
 		lblNewLabel_2 = new JLabel("Tamanho da mensagem (em bytes)");
 		lblNewLabel_2.setBounds(246, 36, 168, 14);
 		contentPane.add(lblNewLabel_2);
-		
+
 		textField_2 = new JTextField();
 		textField_2.setBounds(90, 36, 119, 20);
 		contentPane.add(textField_2);
 		textField_2.setColumns(10);
-		
+
 		lblNewLabel_3 = new JLabel("IP de destino");
 		lblNewLabel_3.setBounds(10, 36, 70, 14);
 		contentPane.add(lblNewLabel_3);
-		
+
 		textField_3 = new JTextField();
 		textField_3.setBounds(426, 33, 84, 20);
 		contentPane.add(textField_3);
 		textField_3.setColumns(10);
-		
+
 		btnNewButton = new JButton("N\u00FAmero de pacotes");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -119,7 +121,7 @@ public class Cliente{
 		btnNewButton.setBackground(Color.LIGHT_GRAY);
 		btnNewButton.setBounds(20, 89, 142, 23);
 		contentPane.add(btnNewButton);
-		
+
 		btnNewButton_1 = new JButton("Total de bytes");
 		btnNewButton_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -129,7 +131,7 @@ public class Cliente{
 		btnNewButton_1.setBackground(Color.LIGHT_GRAY);
 		btnNewButton_1.setBounds(196, 89, 114, 23);
 		contentPane.add(btnNewButton_1);
-		
+
 		btnNewButton_2 = new JButton("Dura\u00E7\u00E3o do teste");
 		btnNewButton_2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -139,23 +141,23 @@ public class Cliente{
 		btnNewButton_2.setBackground(Color.LIGHT_GRAY);
 		btnNewButton_2.setBounds(373, 89, 123, 23);
 		contentPane.add(btnNewButton_2);
-		
+
 		scrollPane = new JScrollPane();
 		scrollPane.setBounds(29, 206, 467, 85);
 		contentPane.add(scrollPane);
-		
+
 		textPane = new JTextPane();
 		scrollPane.setViewportView(textPane);
-		
+
 		textField_4 = new JTextField();
 		textField_4.setBounds(162, 144, 190, 20);
 		contentPane.add(textField_4);
 		textField_4.setColumns(10);
-		
+
 		lblNewLabel_4 = new JLabel("Digite Aqui");
 		lblNewLabel_4.setBounds(226, 123, 70, 14);
 		contentPane.add(lblNewLabel_4);
-		
+
 		btnNewButton_3 = new JButton("Iniciar Teste");
 		btnNewButton_3.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -165,71 +167,71 @@ public class Cliente{
 		btnNewButton_3.setBackground(Color.LIGHT_GRAY);
 		btnNewButton_3.setBounds(196, 175, 114, 23);
 		contentPane.add(btnNewButton_3);
-		
+
 		lblNewLabel_5 = new JLabel("Escolha uma op\u00E7\u00E3o");
 		lblNewLabel_5.setBounds(205, 64, 91, 14);
 		contentPane.add(lblNewLabel_5);
-		
+
 		cliente.setVisible(true);
 		clienteTCP = new ServerSocket(myPorta);
 		usuario = new DatagramSocket(myPorta);
-		ip = InetAddress.getByName("localhost");//por enquanto, local host só pra testes
-		
-		
+		ip = InetAddress.getByName("localhost");// por enquanto, local host só pra testes
+
 	}
 
-	public static Runnable TCP = new Runnable(){
+	public static Runnable TCP = new Runnable() {
 		public void run() {
-		String aux = textField.getText() +"\n"+ textField_1.getText() +"\n"+  textField_2.getText() + "\n"+ textField_3.getText() +"\n"+ Integer.toString(opcao) +"\n"+ textField_4.getText()+ "\n";
-		byte[] cabecalho = new byte[aux.length()+1];
-		ByteBuffer auxiliar = ByteBuffer.wrap(cabecalho);
-		BitSet protocolo = new BitSet(8);
-		protocolo.set(0);
-		auxiliar.put(protocolo.toByteArray());
-		auxiliar.put(aux.getBytes());
-		cabecalho = auxiliar.array();
-		String mensagem = new String(cabecalho);
-		Socket socket;
-		try {
-			socket = new Socket(ip,serverPorta);
-			DataOutputStream saida = new DataOutputStream(socket.getOutputStream());
-			saida.write(mensagem.getBytes());
-			InputStreamReader entrada = new InputStreamReader(socket.getInputStream());
-			BufferedReader le = new BufferedReader(entrada);
-			if(opcao==1) {
-				emissorNum();
-			}else if(opcao==2){
-				emissorBytes();
-			}else {
-				emissorTempo();
+			String aux = textField.getText() + "\n" + textField_1.getText() + "\n" + textField_2.getText() + "\n"
+					+ textField_3.getText() + "\n" + Integer.toString(opcao) + "\n" + textField_4.getText() + "\n";
+			byte[] cabecalho = new byte[aux.length() + 1];
+			ByteBuffer auxiliar = ByteBuffer.wrap(cabecalho);
+			BitSet protocolo = new BitSet(8);
+			protocolo.set(0);
+			auxiliar.put(protocolo.toByteArray());
+			auxiliar.put(aux.getBytes());
+			cabecalho = auxiliar.array();
+			String mensagem = new String(cabecalho);
+			Socket socket;
+			try {
+				socket = new Socket(ip, serverPorta);
+				DataOutputStream saida = new DataOutputStream(socket.getOutputStream());
+				saida.write(mensagem.getBytes());
+				InputStreamReader entrada = new InputStreamReader(socket.getInputStream());
+				BufferedReader le = new BufferedReader(entrada);
+				if (opcao == 1) {
+					emissorNum();
+				} else if (opcao == 2) {
+					emissorBytes();
+				} else {
+					emissorTempo();
+				}
+				while (emCurso) {
+
+				}
+				DataOutputStream sinalTeste = new DataOutputStream(socket.getOutputStream());
+				sinalTeste.write("2".getBytes());
+				System.out.print("kakaka");
+
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-			while(emCurso) {
-				
-			}
-			DataOutputStream sinalTeste = new DataOutputStream(socket.getOutputStream());
-			sinalTeste.write("2".getBytes());
-			System.out.print("kakaka");
-			
-			
-		} catch (IOException e) {	
-			e.printStackTrace();
 		}
-		}
-		
+
 	};
-	public static void emissorNum () throws IOException { 
+
+	public static void emissorNum() throws IOException {
 		String aux = textField_4.getText();
 		int qtdPacotes = Integer.parseInt(aux);
 		System.out.println(qtdPacotes);
 		int valor = 0;
-		for(int i=0; i<qtdPacotes; i++) {
-			byte[] dados = new byte[64];
-			byte[] auxiliar= new byte[63];
+		for (int i = 0; i < qtdPacotes; i++) {
+			byte[] dados = new byte[Integer.parseInt(textField_3.getText())];
+			byte[] auxiliar = new byte[Integer.parseInt(textField_3.getText()) - 1];
 			ByteBuffer buff = ByteBuffer.wrap(dados);
 			BitSet cabecalho = new BitSet(8);
 			cabecalho.set(0);
-			switch(valor) {
-			
+			switch (valor) {
+
 			case 1:
 				cabecalho.set(3);
 				break;
@@ -242,36 +244,37 @@ public class Cliente{
 				break;
 			default:
 			}
-			System.out.println(valor + " "+ cabecalho);
+			System.out.println(valor + " " + cabecalho);
 			valor++;
-			if(valor==4) {
+			if (valor == 4) {
 				valor = 0;
 			}
-			
+
 			buff.put(cabecalho.toByteArray());
-			buff.put(auxiliar);			
+			buff.put(auxiliar);
 			dados = buff.array();
 			DatagramPacket enviarDados = new DatagramPacket(dados, dados.length, ip, serverPorta);
 			usuario.send(enviarDados);
 			contadorPacotes++;
+			qtdBytesEnviados += Integer.parseInt(textField_3.getText());
 		}
 		emCurso = false;
-		
-		
+
 	};
-	public static void emissorBytes() throws IOException{
+
+	public static void emissorBytes() throws IOException {
 		String aux = textField_4.getText();
 		int qtdBytes = Integer.parseInt(aux);
 		System.out.println(qtdBytes);
 		int valor = 0;
-		while(qtdBytes>0) {
-			byte[] dados = new byte[64];
-			byte[] auxiliar= new byte[63];
+		while (qtdBytes > 0) {
+			byte[] dados = new byte[Integer.parseInt(textField_3.getText())];
+			byte[] auxiliar = new byte[Integer.parseInt(textField_3.getText()) - 1];
 			ByteBuffer buff = ByteBuffer.wrap(dados);
 			BitSet cabecalho = new BitSet(8);
 			cabecalho.set(0);
-			switch(valor) {
-			
+			switch (valor) {
+
 			case 1:
 				cabecalho.set(3);
 				break;
@@ -284,36 +287,37 @@ public class Cliente{
 				break;
 			default:
 			}
-			System.out.println(valor + " "+ cabecalho);
+			System.out.println(valor + " " + cabecalho);
 			valor++;
-			if(valor==4) {
+			if (valor == 4) {
 				valor = 0;
 			}
-			
+
 			buff.put(cabecalho.toByteArray());
-			buff.put(auxiliar);			
+			buff.put(auxiliar);
 			dados = buff.array();
 			DatagramPacket enviarDados = new DatagramPacket(dados, dados.length, ip, serverPorta);
-			usuario.send(enviarDados);	
-			qtdBytes-=Integer.parseInt(textField_3.getText());
+			usuario.send(enviarDados);
+			qtdBytes -= Integer.parseInt(textField_3.getText());
 			contadorPacotes++;
+			qtdBytesEnviados += Integer.parseInt(textField_3.getText());
 		}
 		emCurso = false;
 	};
-	
-	public static void emissorTempo() throws IOException{
+
+	public static void emissorTempo() throws IOException {
 		String aux = textField_4.getText();
-		int tempoTeste = Integer.parseInt(aux)*1000;
-		long tempoInicial = System.currentTimeMillis();
+		int tempoTeste = Integer.parseInt(aux) * 1000;
 		int valor = 0;
-		while(System.currentTimeMillis()-tempoInicial<tempoTeste) {
-			byte[] dados = new byte[64];
-			byte[] auxiliar= new byte[63];
+		long tempoInicial = System.currentTimeMillis();
+		while (System.currentTimeMillis() - tempoInicial < tempoTeste) {
+			byte[] dados = new byte[Integer.parseInt(textField_3.getText())];
+			byte[] auxiliar = new byte[Integer.parseInt(textField_3.getText()) - 1];
 			ByteBuffer buff = ByteBuffer.wrap(dados);
 			BitSet cabecalho = new BitSet(8);
 			cabecalho.set(0);
-			switch(valor) {
-			
+			switch (valor) {
+
 			case 1:
 				cabecalho.set(3);
 				break;
@@ -326,20 +330,21 @@ public class Cliente{
 				break;
 			default:
 			}
-			System.out.println(valor + " "+ cabecalho);
+			System.out.println(valor + " " + cabecalho);
 			valor++;
-			if(valor==4) {
+			if (valor == 4) {
 				valor = 0;
 			}
-			
+
 			buff.put(cabecalho.toByteArray());
-			buff.put(auxiliar);			
+			buff.put(auxiliar);
 			dados = buff.array();
 			DatagramPacket enviarDados = new DatagramPacket(dados, dados.length, ip, serverPorta);
-			usuario.send(enviarDados);	
+			usuario.send(enviarDados);
 			contadorPacotes++;
+			qtdBytesEnviados += Integer.parseInt(textField_3.getText());
 		}
 		emCurso = false;
 	};
-	
+
 }

@@ -33,6 +33,7 @@ public class Servidor {
 	static String digiteAqui;
 	static double media;
 	static int contadorPacotes = 0;
+	static int qtdBytesRecebidos = 0;
 	static long minimo = 999999999;
 	static long maximo = 0;
 	static boolean emCurso = true;
@@ -89,6 +90,7 @@ public class Servidor {
 				BufferedReader le2 = new BufferedReader(sinalTeste);
 				String mensagem2 = le2.readLine();
 				emCurso = false;
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -96,13 +98,13 @@ public class Servidor {
 		}
 	};
 
-	public static Runnable receptorUDP = new Runnable() { 
+	public static Runnable receptorUDP = new Runnable() {
 		public void run() {
 			long anterior = -2;
 			long tempoAnterior = -1;
 			long total = 0;
 			int contadorIntervalos = 0;
-			
+
 			while (emCurso) {
 				byte[] armazenador = new byte[qtdBytes];
 				DatagramPacket pacoteRecebido = new DatagramPacket(armazenador, armazenador.length);
@@ -141,12 +143,12 @@ public class Servidor {
 					System.out.println("ChegueiAqui");
 					media = (double) total / contadorIntervalos;
 					System.out.println(minimo + "\n" + maximo + "\n" + media);
-
+					qtdBytesRecebidos += qtdBytes;
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
-			
+
 		}
 	};
 }
