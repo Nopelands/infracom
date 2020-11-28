@@ -8,9 +8,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.BitSet;
+import java.util.Date;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -18,6 +21,9 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.JLabel;
+
+import org.apache.commons.net.ntp.NTPUDPClient;
+import org.apache.commons.net.ntp.TimeInfo;
 
 public class Servidor {
 
@@ -37,6 +43,10 @@ public class Servidor {
 	static long minimo = 999999999;
 	static long maximo = 0;
 	static boolean emCurso = true;
+	static int contadorPacotesEnviados = 0;
+	static String qtdBytesEnviados;
+	static long offsetValue;
+	static long tempo;
 
 	public static void main(String[] args) throws IOException {
 		servidor = new JFrame();
@@ -63,6 +73,21 @@ public class Servidor {
 		lblNewLabel_1.setBounds(182, 11, 83, 14);
 		contentPane.add(lblNewLabel_1);
 		servidor.setVisible(true);
+
+		try {
+			String ntpServer = "a.st1.ntp.br";
+
+			NTPUDPClient timeClient = new NTPUDPClient();
+			InetAddress inetAddress = InetAddress.getByName(ntpServer);
+			TimeInfo timeInfo = timeClient.getTime(inetAddress);
+			timeInfo.computeDetails();
+			offsetValue = timeInfo.getOffset();
+
+		} catch (UnknownHostException ex) {
+			ex.printStackTrace();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
 		tcpSocket = new ServerSocket(porta);
 		recebendo = new DatagramSocket(porta);
 		new Thread(receptorTCP).start();
@@ -75,23 +100,39 @@ public class Servidor {
 				InputStreamReader entrada = new InputStreamReader(socketRecebimento.getInputStream());
 				BufferedReader le = new BufferedReader(entrada);
 				String mensagem = le.readLine();
-				mensagem = mensagem + "\n" + le.readLine() + "\n" + le.readLine() + "\n";
+				mensagem = mensagem + "\nPorta de destino: " + le.readLine() + "\nIP de destino: " + le.readLine()
+						+ "\nTamanho da mensagem: ";
 				qtdBytes = Integer.parseInt(le.readLine());
-				mensagem = mensagem + Integer.toString(qtdBytes) + "\n";
+				mensagem = mensagem + Integer.toString(qtdBytes) + " (bytes)\nOpção: ";
 				opcao = Integer.parseInt(le.readLine());
 				digiteAqui = le.readLine();
-				mensagem = mensagem + Integer.toString(opcao) + "\n" + digiteAqui;
-				textPane.setText(mensagem.substring(1));
-				System.out.print("panda123");
+				mensagem = mensagem + Integer.toString(opcao) + "\nCampo digite aqui: " + digiteAqui;
+				textPane.setText("Porta de origem: " + mensagem.substring(1));
 				new Thread(receptorUDP).start();
 				DataOutputStream saida = new DataOutputStream(socketRecebimento.getOutputStream());
-				saida.write("1".getBytes());
+				saida.write("1\n".getBytes());
 				InputStreamReader sinalTeste = new InputStreamReader(socketRecebimento.getInputStream());
 				BufferedReader le2 = new BufferedReader(sinalTeste);
-				String mensagem2 = le2.readLine();
+				String sinal = le2.readLine();
+				Thread.currentThread().sleep(3000);
 				emCurso = false;
-
-			} catch (IOException e) {
+				qtdBytesEnviados = le2.readLine();
+				System.out.println("eaeee");
+				String mensagem2 = le2.readLine();
+				System.out.println("eaeee");
+				Long tempoInicialEnvio = Long.parseLong(mensagem2);
+				Long tempoEnvio = (tempo + offsetValue) - tempoInicialEnvio;
+				System.out.println(qtdBytesEnviados + "\n" + tempoEnvio);
+				double taxaTransferencia = (double) (Long.parseLong(qtdBytesEnviados) / tempoEnvio) / 1000L;
+				System.out.println(taxaTransferencia);
+				String mensagem3 = le2.readLine();
+				contadorPacotesEnviados = Integer.parseInt(mensagem3);
+				double perdaPacotes = (1 - (double) contadorPacotes / contadorPacotesEnviados) * 100;
+				textPane.setText(textPane.getText() + "\n" + qtdBytesEnviados + "\n" + Integer.toString(qtdBytesRecebidos) + "\n"
+								+ String.valueOf(taxaTransferencia) + "\n" + String.valueOf(perdaPacotes) + "%\n"
+								+ Long.toString(minimo) + "\n" + Long.toString(maximo) + "\n" + String.valueOf(media)+"\n");
+				saida.write(textPane.getText().getBytes());
+			} catch (IOException | InterruptedException e) {
 				e.printStackTrace();
 			}
 
@@ -104,13 +145,12 @@ public class Servidor {
 			long tempoAnterior = -1;
 			long total = 0;
 			int contadorIntervalos = 0;
-
 			while (emCurso) {
 				byte[] armazenador = new byte[qtdBytes];
 				DatagramPacket pacoteRecebido = new DatagramPacket(armazenador, armazenador.length);
 				try {
 					recebendo.receive(pacoteRecebido);
-					long tempo = System.currentTimeMillis();
+					tempo = System.currentTimeMillis();
 					contadorPacotes++;
 					byte[] auxCabeca = { armazenador[0] };
 					BitSet cabecalho = BitSet.valueOf(auxCabeca);

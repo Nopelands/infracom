@@ -26,6 +26,10 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.awt.event.ActionEvent;
 import java.util.BitSet;
+import java.util.Date;
+
+import org.apache.commons.net.ntp.NTPUDPClient;
+import org.apache.commons.net.ntp.TimeInfo;
 
 public class Cliente {
 
@@ -57,14 +61,18 @@ public class Cliente {
 	static boolean emCurso = true;
 	static int contadorPacotes = 0;
 	static int qtdBytesEnviados = 0;
+	static long offsetValue;
+	static long tempoInicialEnvio;
 
 	/**
 	 * Launch the application.
 	 * 
+	 * @throws InterruptedException
+	 * 
 	 * @throws SocketException
 	 * @throws UnknownHostException
 	 */
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		cliente = new JFrame();
 
 		cliente.setTitle("Cliente");
@@ -173,6 +181,21 @@ public class Cliente {
 		contentPane.add(lblNewLabel_5);
 
 		cliente.setVisible(true);
+
+		try {
+			String ntpServer = "a.st1.ntp.br";
+
+			NTPUDPClient timeClient = new NTPUDPClient();
+			InetAddress inetAddress = InetAddress.getByName(ntpServer);
+			TimeInfo timeInfo = timeClient.getTime(inetAddress);
+			timeInfo.computeDetails();
+			offsetValue = timeInfo.getOffset();
+
+		} catch (UnknownHostException ex) {
+			ex.printStackTrace();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
 		clienteTCP = new ServerSocket(myPorta);
 		usuario = new DatagramSocket(myPorta);
 		ip = InetAddress.getByName("localhost");// por enquanto, local host só pra testes
@@ -198,6 +221,7 @@ public class Cliente {
 				saida.write(mensagem.getBytes());
 				InputStreamReader entrada = new InputStreamReader(socket.getInputStream());
 				BufferedReader le = new BufferedReader(entrada);
+				le.readLine();
 				if (opcao == 1) {
 					emissorNum();
 				} else if (opcao == 2) {
@@ -208,8 +232,18 @@ public class Cliente {
 				while (emCurso) {
 
 				}
+				String saidaAux = "1\n" + Integer.toString(qtdBytesEnviados) + "\n"
+						+ String.valueOf(tempoInicialEnvio + offsetValue) + "\n" + Integer.toString(contadorPacotes)
+						+ "\n";
+				System.out.println(textField_3.getText() + "\n" + Integer.parseInt(textField_3.getText()) + "\n"
+						+ qtdBytesEnviados + "\n" + Integer.toString(qtdBytesEnviados) + "\n"
+						+ Integer.parseInt(Integer.toString(qtdBytesEnviados)));
 				DataOutputStream sinalTeste = new DataOutputStream(socket.getOutputStream());
-				sinalTeste.write("2".getBytes());
+				sinalTeste.write(saidaAux.getBytes());
+				String mensagemResposta = le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + 
+						le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + 
+						le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n";
+				textPane.setText(mensagemResposta);
 				System.out.print("kakaka");
 
 			} catch (IOException e) {
@@ -224,6 +258,7 @@ public class Cliente {
 		int qtdPacotes = Integer.parseInt(aux);
 		System.out.println(qtdPacotes);
 		int valor = 0;
+
 		for (int i = 0; i < qtdPacotes; i++) {
 			byte[] dados = new byte[Integer.parseInt(textField_3.getText())];
 			byte[] auxiliar = new byte[Integer.parseInt(textField_3.getText()) - 1];
@@ -254,9 +289,12 @@ public class Cliente {
 			buff.put(auxiliar);
 			dados = buff.array();
 			DatagramPacket enviarDados = new DatagramPacket(dados, dados.length, ip, serverPorta);
+			if (i == 0) {
+				tempoInicialEnvio = System.currentTimeMillis();
+			}
 			usuario.send(enviarDados);
 			contadorPacotes++;
-			qtdBytesEnviados += Integer.parseInt(textField_3.getText());
+			qtdBytesEnviados = qtdBytesEnviados + Integer.parseInt(textField_3.getText());
 		}
 		emCurso = false;
 
@@ -297,10 +335,14 @@ public class Cliente {
 			buff.put(auxiliar);
 			dados = buff.array();
 			DatagramPacket enviarDados = new DatagramPacket(dados, dados.length, ip, serverPorta);
+			if (contadorPacotes == 0) {
+
+				tempoInicialEnvio = System.currentTimeMillis();
+			}
 			usuario.send(enviarDados);
 			qtdBytes -= Integer.parseInt(textField_3.getText());
 			contadorPacotes++;
-			qtdBytesEnviados += Integer.parseInt(textField_3.getText());
+			qtdBytesEnviados = qtdBytesEnviados + Integer.parseInt(textField_3.getText());
 		}
 		emCurso = false;
 	};
@@ -340,9 +382,13 @@ public class Cliente {
 			buff.put(auxiliar);
 			dados = buff.array();
 			DatagramPacket enviarDados = new DatagramPacket(dados, dados.length, ip, serverPorta);
+			if (contadorPacotes == 0) {
+				tempoInicialEnvio = System.currentTimeMillis();
+			}
 			usuario.send(enviarDados);
 			contadorPacotes++;
-			qtdBytesEnviados += Integer.parseInt(textField_3.getText());
+			qtdBytesEnviados = qtdBytesEnviados + Integer.parseInt(textField_3.getText());
+			System.out.println(contadorPacotes - 1 + "\n" + qtdBytesEnviados);
 		}
 		emCurso = false;
 	};
