@@ -54,8 +54,8 @@ public class Cliente {
 	private static JLabel lblNewLabel_5;
 	static ServerSocket clienteTCP;
 	static DatagramSocket usuario;
-	static int myPorta = 23000;
-	static int serverPorta = 23001;
+	static int myPorta;
+	static int serverPorta;
 	static InetAddress ip;
 	static int opcao;
 	static boolean emCurso = true;
@@ -196,14 +196,23 @@ public class Cliente {
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
-		clienteTCP = new ServerSocket(myPorta);
-		usuario = new DatagramSocket(myPorta);
-		ip = InetAddress.getByName("localhost");// por enquanto, local host só pra testes
+		// por enquanto, local host só pra testes
 
 	}
 
 	public static Runnable TCP = new Runnable() {
 		public void run() {
+			myPorta = Integer.parseInt(textField.getText());
+			serverPorta = Integer.parseInt(textField_1.getText());
+			try {
+				clienteTCP = new ServerSocket(myPorta);
+				usuario = new DatagramSocket(myPorta);
+				ip = InetAddress.getByName(textField_2.getText());
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
 			String aux = textField.getText() + "\n" + textField_1.getText() + "\n" + textField_2.getText() + "\n"
 					+ textField_3.getText() + "\n" + Integer.toString(opcao) + "\n" + textField_4.getText() + "\n";
 			byte[] cabecalho = new byte[aux.length() + 1];
