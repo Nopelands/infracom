@@ -207,7 +207,7 @@ public class Cliente {
 			try {
 				clienteTCP = new ServerSocket(myPorta);
 				usuario = new DatagramSocket(myPorta);
-				ip = InetAddress.getByName(textField_2.getText());
+				ip = InetAddress.getByAddress(textField_2.getText().getBytes());
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
