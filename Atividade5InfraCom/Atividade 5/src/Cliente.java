@@ -251,7 +251,7 @@ public class Cliente {
 				sinalTeste.write(saidaAux.getBytes());
 				String mensagemResposta = le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + 
 						le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + 
-						le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n";
+						le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n";
 				textPane.setText(mensagemResposta);
 				System.out.print("kakaka");
 
