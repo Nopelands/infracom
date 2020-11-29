@@ -103,11 +103,18 @@ public class Servidor {
 				mensagem = mensagem + "\nPorta de destino: " + le.readLine() + "\nIP de destino: " + le.readLine()
 						+ "\nTamanho da mensagem: ";
 				qtdBytes = Integer.parseInt(le.readLine());
-				mensagem = mensagem + Integer.toString(qtdBytes) + " (bytes)\nOpção: ";
+				mensagem = mensagem + Integer.toString(qtdBytes) + " bytes\nOpção: ";
 				opcao = Integer.parseInt(le.readLine());
+				String opcaoEscolhida;
+				if(opcao == 1) {
+					opcaoEscolhida = "Número de pacotes";
+				}else if(opcao == 2) {
+					opcaoEscolhida = "Total de bytes";
+				}else {
+					opcaoEscolhida = "Duração do teste";
+				}
 				digiteAqui = le.readLine();
-				mensagem = mensagem + Integer.toString(opcao) + "\nCampo digite aqui: " + digiteAqui;
-				textPane.setText("Porta de origem: " + mensagem.substring(1));
+				mensagem = mensagem + opcaoEscolhida + ": " + digiteAqui;	
 				new Thread(receptorUDP).start();
 				DataOutputStream saida = new DataOutputStream(socketRecebimento.getOutputStream());
 				saida.write("1\n".getBytes());
@@ -117,20 +124,20 @@ public class Servidor {
 				Thread.currentThread().sleep(3000);
 				emCurso = false;
 				qtdBytesEnviados = le2.readLine();
-				System.out.println("eaeee");
 				String mensagem2 = le2.readLine();
-				System.out.println("eaeee");
 				Long tempoInicialEnvio = Long.parseLong(mensagem2);
 				Long tempoEnvio = (tempo + offsetValue) - tempoInicialEnvio;
 				System.out.println(qtdBytesEnviados + "\n" + tempoEnvio);
-				double taxaTransferencia = ((double) Long.parseLong(qtdBytesEnviados) / tempoEnvio);
+				double taxaTransferencia = ((double) Long.parseLong(qtdBytesEnviados) / tempoEnvio)*1000;
 				System.out.println(taxaTransferencia);
 				String mensagem3 = le2.readLine();
 				contadorPacotesEnviados = Integer.parseInt(mensagem3);
 				double perdaPacotes = (1 - (double) contadorPacotes / contadorPacotesEnviados) * 100;
-				textPane.setText(textPane.getText() + "\n" + qtdBytesEnviados + "\n" + Integer.toString(qtdBytesRecebidos) + "\n"
-								+ String.valueOf(taxaTransferencia) + "MB/s\n" + String.valueOf(perdaPacotes) + "%\n"
-								+ Long.toString(minimo) + "\n" + Long.toString(maximo) + "\n" + String.valueOf(media)+"\n");
+				textPane.setText("Porta de origem: " + mensagem.substring(1));
+				textPane.setText(textPane.getText() + "\nQuantidade de bytes enviados: " + qtdBytesEnviados + " bytes\nQuantidade de bytes recebidos: "
+				+ Integer.toString(qtdBytesRecebidos) + " bytes\nTaxa de transferência: " + String.valueOf(taxaTransferencia) 
+				+ " bytes/s\nPorcentagem de perda de pacotes: " + String.valueOf(perdaPacotes) + "%\nJitter mínimo: " + Long.toString(minimo)
+				+ " ms\nJitter máximo: " + Long.toString(maximo) + " ms\nJitter médio: " + String.valueOf(media)+" ms\n");
 				saida.write(textPane.getText().getBytes());
 			} catch (IOException | InterruptedException e) {
 				e.printStackTrace();
