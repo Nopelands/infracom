@@ -123,13 +123,13 @@ public class Servidor {
 				Long tempoInicialEnvio = Long.parseLong(mensagem2);
 				Long tempoEnvio = (tempo + offsetValue) - tempoInicialEnvio;
 				System.out.println(qtdBytesEnviados + "\n" + tempoEnvio);
-				double taxaTransferencia = (double) (Long.parseLong(qtdBytesEnviados) / tempoEnvio) / 1000L;
+				double taxaTransferencia = ((double) Long.parseLong(qtdBytesEnviados) / tempoEnvio);
 				System.out.println(taxaTransferencia);
 				String mensagem3 = le2.readLine();
 				contadorPacotesEnviados = Integer.parseInt(mensagem3);
 				double perdaPacotes = (1 - (double) contadorPacotes / contadorPacotesEnviados) * 100;
 				textPane.setText(textPane.getText() + "\n" + qtdBytesEnviados + "\n" + Integer.toString(qtdBytesRecebidos) + "\n"
-								+ String.valueOf(taxaTransferencia) + "\n" + String.valueOf(perdaPacotes) + "%\n"
+								+ String.valueOf(taxaTransferencia) + "MB/s\n" + String.valueOf(perdaPacotes) + "%\n"
 								+ Long.toString(minimo) + "\n" + Long.toString(maximo) + "\n" + String.valueOf(media)+"\n");
 				saida.write(textPane.getText().getBytes());
 			} catch (IOException | InterruptedException e) {
