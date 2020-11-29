@@ -106,15 +106,18 @@ public class Servidor {
 				mensagem = mensagem + Integer.toString(qtdBytes) + " bytes\nOpção: ";
 				opcao = Integer.parseInt(le.readLine());
 				String opcaoEscolhida;
+				
+				digiteAqui = le.readLine();
 				if(opcao == 1) {
 					opcaoEscolhida = "Número de pacotes";
+					mensagem = mensagem + opcaoEscolhida + " = " + digiteAqui + " pacotes";
 				}else if(opcao == 2) {
 					opcaoEscolhida = "Total de bytes";
+					mensagem = mensagem + opcaoEscolhida + " = " + digiteAqui + " bytes";
 				}else {
 					opcaoEscolhida = "Duração do teste";
+					mensagem = mensagem + opcaoEscolhida + " = " + digiteAqui + " segundos";
 				}
-				digiteAqui = le.readLine();
-				mensagem = mensagem + opcaoEscolhida + ": " + digiteAqui;	
 				new Thread(receptorUDP).start();
 				DataOutputStream saida = new DataOutputStream(socketRecebimento.getOutputStream());
 				saida.write("1\n".getBytes());
@@ -135,9 +138,9 @@ public class Servidor {
 				double perdaPacotes = (1 - (double) contadorPacotes / contadorPacotesEnviados) * 100;
 				textPane.setText("Porta de origem: " + mensagem.substring(1));
 				textPane.setText(textPane.getText() + "\nQuantidade de bytes enviados: " + qtdBytesEnviados + " bytes\nQuantidade de bytes recebidos: "
-				+ Integer.toString(qtdBytesRecebidos) + " bytes\nTaxa de transferência: " + String.valueOf(taxaTransferencia) 
-				+ " bytes/s\nPorcentagem de perda de pacotes: " + String.valueOf(perdaPacotes) + "%\nJitter mínimo: " + Long.toString(minimo)
-				+ " ms\nJitter máximo: " + Long.toString(maximo) + " ms\nJitter médio: " + String.valueOf(media)+" ms\n");
+				+ Integer.toString(qtdBytesRecebidos) + " bytes\nTaxa de transferência: " + String.format("%.3f",taxaTransferencia) 
+				+ " bytes/s\nPorcentagem de perda de pacotes: " + String.format("%.3f",perdaPacotes) + "%\nJitter mínimo: " + Long.toString(minimo)
+				+ " ms\nJitter máximo: " + Long.toString(maximo) + " ms\nJitter médio: " + String.format("%.3f",media)+" ms\n");
 				saida.write(textPane.getText().getBytes());
 			} catch (IOException | InterruptedException e) {
 				e.printStackTrace();
@@ -187,7 +190,6 @@ public class Servidor {
 					System.out.println(contadorIntervalos + " " + value);
 					anterior = value;
 					tempoAnterior = tempo;
-					System.out.println("ChegueiAqui");
 					media = (double) total / contadorIntervalos;
 					System.out.println(minimo + "\n" + maximo + "\n" + media);
 					qtdBytesRecebidos += qtdBytes;
