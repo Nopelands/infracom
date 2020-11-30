@@ -106,15 +106,15 @@ public class Servidor {
 				mensagem = mensagem + Integer.toString(qtdBytes) + " bytes\nOpção: ";
 				opcao = Integer.parseInt(le.readLine());
 				String opcaoEscolhida;
-				
+
 				digiteAqui = le.readLine();
-				if(opcao == 1) {
+				if (opcao == 1) {
 					opcaoEscolhida = "Número de pacotes";
 					mensagem = mensagem + opcaoEscolhida + " = " + digiteAqui + " pacotes";
-				}else if(opcao == 2) {
+				} else if (opcao == 2) {
 					opcaoEscolhida = "Total de bytes";
 					mensagem = mensagem + opcaoEscolhida + " = " + digiteAqui + " bytes";
-				}else {
+				} else {
 					opcaoEscolhida = "Duração do teste";
 					mensagem = mensagem + opcaoEscolhida + " = " + digiteAqui + " segundos";
 				}
@@ -131,16 +131,28 @@ public class Servidor {
 				Long tempoInicialEnvio = Long.parseLong(mensagem2);
 				Long tempoEnvio = (tempo + offsetValue) - tempoInicialEnvio;
 				System.out.println(qtdBytesEnviados + "\n" + tempoEnvio);
-				double taxaTransferencia = ((double) Long.parseLong(qtdBytesEnviados) / tempoEnvio)*1000;
+				double taxaTransferencia = ((double) Long.parseLong(qtdBytesEnviados) / tempoEnvio) * 1000;
 				System.out.println(taxaTransferencia);
 				String mensagem3 = le2.readLine();
 				contadorPacotesEnviados = Integer.parseInt(mensagem3);
 				double perdaPacotes = (1 - (double) contadorPacotes / contadorPacotesEnviados) * 100;
 				textPane.setText("Porta de origem: " + mensagem.substring(1));
-				textPane.setText(textPane.getText() + "\nQuantidade de bytes enviados: " + qtdBytesEnviados + " bytes\nQuantidade de bytes recebidos: "
-				+ Integer.toString(qtdBytesRecebidos) + " bytes\nTaxa de transferência: " + String.format("%.3f",taxaTransferencia) 
-				+ " bytes/s\nPorcentagem de perda de pacotes: " + String.format("%.3f",perdaPacotes) + "%\nJitter mínimo: " + Long.toString(minimo)
-				+ " ms\nJitter máximo: " + Long.toString(maximo) + " ms\nJitter médio: " + String.format("%.3f",media)+" ms\n");
+				String mensagemTaxa;
+				if (taxaTransferencia > 1000000) {
+					taxaTransferencia = taxaTransferencia / 1000000;
+					mensagemTaxa = " MB/s\nPorcentagem de perda de pacotes: ";
+				} else if (taxaTransferencia > 1000) {
+					taxaTransferencia = taxaTransferencia / 1000;
+					mensagemTaxa = " KB/s\nPorcentagem de perda de pacotes: ";
+				} else {
+					mensagemTaxa = " Bytes/s\nPorcentagem de perda de pacotes: ";
+				}
+				textPane.setText(textPane.getText() + "\nQuantidade de bytes enviados: " + qtdBytesEnviados
+						+ " bytes\nQuantidade de bytes recebidos: " + Integer.toString(qtdBytesRecebidos)
+						+ " bytes\nTaxa de transferência: " + String.format("%.3f", taxaTransferencia) + mensagemTaxa
+						+ String.format("%.3f", perdaPacotes) + "%\nJitter mínimo: " + Long.toString(minimo)
+						+ " ms\nJitter máximo: " + Long.toString(maximo) + " ms\nJitter médio: "
+						+ String.format("%.3f", media) + " ms\n");
 				saida.write(textPane.getText().getBytes());
 			} catch (IOException | InterruptedException e) {
 				e.printStackTrace();
