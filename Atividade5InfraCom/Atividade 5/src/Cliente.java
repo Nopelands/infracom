@@ -169,7 +169,7 @@ public class Cliente {
 		btnNewButton_3 = new JButton("Iniciar Teste");
 		btnNewButton_3.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new Thread(TCP).start();
+				new Thread(TCP).start(); //inicialização da thread tcp
 			}
 		});
 		btnNewButton_3.setBackground(Color.LIGHT_GRAY);
@@ -182,7 +182,7 @@ public class Cliente {
 
 		cliente.setVisible(true);
 
-		try {
+		try { //Sincroniza com o servidor ntp, pegando o offset, utilizado para verificar a diferença em relação ao relógio do servidor
 			String ntpServer = "a.st1.ntp.br";
 
 			NTPUDPClient timeClient = new NTPUDPClient();
@@ -196,8 +196,7 @@ public class Cliente {
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
-		// por enquanto, local host só pra testes
-
+	
 	}
 
 	public static Runnable TCP = new Runnable() {
@@ -205,18 +204,17 @@ public class Cliente {
 			myPorta = Integer.parseInt(textField.getText());
 			serverPorta = Integer.parseInt(textField_1.getText());
 			try {
-				clienteTCP = new ServerSocket(myPorta);
+				clienteTCP = new ServerSocket(myPorta);	//inicialização dos sockets tcp e udp
 				usuario = new DatagramSocket(myPorta);
 				ip = InetAddress.getByName(textField_2.getText());
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			
-			String aux = textField.getText() + "\n" + textField_1.getText() + "\n" + textField_2.getText() + "\n"
+
+			String aux = textField.getText() + "\n" + textField_1.getText() + "\n" + textField_2.getText() + "\n"	//Preparação das opções do cliente a serem mandadas ao servidor
 					+ textField_3.getText() + "\n" + Integer.toString(opcao) + "\n" + textField_4.getText() + "\n";
 			byte[] cabecalho = new byte[aux.length() + 1];
-			ByteBuffer auxiliar = ByteBuffer.wrap(cabecalho);
+			ByteBuffer auxiliar = ByteBuffer.wrap(cabecalho); //Setando o cabeçalho no tcp
 			BitSet protocolo = new BitSet(8);
 			protocolo.set(0);
 			auxiliar.put(protocolo.toByteArray());
@@ -226,34 +224,31 @@ public class Cliente {
 			Socket socket;
 			try {
 				socket = new Socket(ip, serverPorta);
-				DataOutputStream saida = new DataOutputStream(socket.getOutputStream());
-				saida.write(mensagem.getBytes());
+				DataOutputStream saida = new DataOutputStream(socket.getOutputStream()); 
+				saida.write(mensagem.getBytes()); //Enviando as opções do cliente para o servidor
 				InputStreamReader entrada = new InputStreamReader(socket.getInputStream());
 				BufferedReader le = new BufferedReader(entrada);
-				le.readLine();
-				if (opcao == 1) {
+				le.readLine(); //Aqui serve para quando o servidor envia uma mensagem de pronto para receber pacotes
+				if (opcao == 1) {//Aqui executa o método de enviar pacotes udp de acordo com a opção escolhida pelo usuário
 					emissorNum();
 				} else if (opcao == 2) {
 					emissorBytes();
 				} else {
 					emissorTempo();
 				}
-				while (emCurso) {
+				while (emCurso) {//Permanece nesse while até que todos pacotes tenham sido enviados
 
 				}
-				String saidaAux = "1\n" + Integer.toString(qtdBytesEnviados) + "\n"
+				String saidaAux = "1\n" + Integer.toString(qtdBytesEnviados) + "\n"//Prepara os dados sobre envio dos pacotes udp
 						+ String.valueOf(tempoInicialEnvio + offsetValue) + "\n" + Integer.toString(contadorPacotes)
 						+ "\n";
-				System.out.println(textField_3.getText() + "\n" + Integer.parseInt(textField_3.getText()) + "\n"
-						+ qtdBytesEnviados + "\n" + Integer.toString(qtdBytesEnviados) + "\n"
-						+ Integer.parseInt(Integer.toString(qtdBytesEnviados)));
 				DataOutputStream sinalTeste = new DataOutputStream(socket.getOutputStream());
-				sinalTeste.write(saidaAux.getBytes());
-				String mensagemResposta = le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + 
-						le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + 
-						le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n";
-				textPane.setText(mensagemResposta);
-				System.out.print("kakaka");
+				sinalTeste.write(saidaAux.getBytes()); //Aqui envia os dados sobre o envio dos pacotes udp
+				String mensagemResposta = le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" //Aqui armazena em uma string os resultados dos testes realizados no servidor
+						+ le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n"
+						+ le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n" + le.readLine() + "\n"
+						+ le.readLine() + "\n";
+				textPane.setText(mensagemResposta); //Printa os resultados do teste no textPane
 
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -263,18 +258,17 @@ public class Cliente {
 	};
 
 	public static void emissorNum() throws IOException {
-		String aux = textField_4.getText();
+		String aux = textField_4.getText(); //Pega a informação digitada pelo usuario para ser a base do teste de quantidade de pacotes
 		int qtdPacotes = Integer.parseInt(aux);
-		System.out.println(qtdPacotes);
 		int valor = 0;
 
-		for (int i = 0; i < qtdPacotes; i++) {
-			byte[] dados = new byte[Integer.parseInt(textField_3.getText())];
+		for (int i = 0; i < qtdPacotes; i++) { 	//Esse "for" serve para enviar os pacotes até a quantidade determinada pelo usuário
+			byte[] dados = new byte[Integer.parseInt(textField_3.getText())];// A partir daqui, está sendo preparado o cabeçalho de tamanho 1 byte(8 bits)
 			byte[] auxiliar = new byte[Integer.parseInt(textField_3.getText()) - 1];
 			ByteBuffer buff = ByteBuffer.wrap(dados);
 			BitSet cabecalho = new BitSet(8);
-			cabecalho.set(0);
-			switch (valor) {
+			cabecalho.set(0);// Os três primeiros bits do cabeçalho são a versão do protocolo, nesse caso, versão 1, pois apenas o bit 0 é setado 
+			switch (valor) {// O quarto e quinto bit são utilizados para número de sequência de pacote, utilizado para cálculo de jitter, nesse switch eles são setados de acordo com o valor
 
 			case 1:
 				cabecalho.set(3);
@@ -288,38 +282,36 @@ public class Cliente {
 				break;
 			default:
 			}
-			System.out.println(valor + " " + cabecalho);
 			valor++;
 			if (valor == 4) {
 				valor = 0;
 			}
 
-			buff.put(cabecalho.toByteArray());
+			buff.put(cabecalho.toByteArray());// Aqui os bits do cabeçalho juntam-se com os dos dados
 			buff.put(auxiliar);
 			dados = buff.array();
 			DatagramPacket enviarDados = new DatagramPacket(dados, dados.length, ip, serverPorta);
 			if (i == 0) {
-				tempoInicialEnvio = System.currentTimeMillis();
+				tempoInicialEnvio = System.currentTimeMillis(); //Aqui salva o tempo inicial, para cálculo de tempo
 			}
-			usuario.send(enviarDados);
+			usuario.send(enviarDados);//Aqui envia os dados
 			contadorPacotes++;
 			qtdBytesEnviados = qtdBytesEnviados + Integer.parseInt(textField_3.getText());
 		}
-		emCurso = false;
+		emCurso = false; //Quando o envio acaba, a variável que diz que está sendo enviado pacotes é setada para false
 
 	};
 
 	public static void emissorBytes() throws IOException {
-		String aux = textField_4.getText();
+		String aux = textField_4.getText(); //Pega a informação digitada pelo usuario para ser a base do teste de número de bytes
 		int qtdBytes = Integer.parseInt(aux);
-		System.out.println(qtdBytes);
 		int valor = 0;
-		while (qtdBytes > 0) {
+		while (qtdBytes > 0) { //Continua nesse while até que a quantidade de bytes enviados seja maior ou igual que a determinada
 			byte[] dados = new byte[Integer.parseInt(textField_3.getText())];
 			byte[] auxiliar = new byte[Integer.parseInt(textField_3.getText()) - 1];
 			ByteBuffer buff = ByteBuffer.wrap(dados);
 			BitSet cabecalho = new BitSet(8);
-			cabecalho.set(0);
+			cabecalho.set(0); //Aqui seta o cabeçalho
 			switch (valor) {
 
 			case 1:
@@ -334,7 +326,6 @@ public class Cliente {
 				break;
 			default:
 			}
-			System.out.println(valor + " " + cabecalho);
 			valor++;
 			if (valor == 4) {
 				valor = 0;
@@ -346,26 +337,26 @@ public class Cliente {
 			DatagramPacket enviarDados = new DatagramPacket(dados, dados.length, ip, serverPorta);
 			if (contadorPacotes == 0) {
 
-				tempoInicialEnvio = System.currentTimeMillis();
+				tempoInicialEnvio = System.currentTimeMillis(); //Aqui salva o tempo inicial
 			}
-			usuario.send(enviarDados);
+			usuario.send(enviarDados); //Aqui envia o pacote
 			qtdBytes -= Integer.parseInt(textField_3.getText());
 			contadorPacotes++;
 			qtdBytesEnviados = qtdBytesEnviados + Integer.parseInt(textField_3.getText());
 		}
-		emCurso = false;
+		emCurso = false; //Quando acaba o teste, seta a variável que diz que os pacotes estão sendo enviados para false
 	};
 
 	public static void emissorTempo() throws IOException {
-		String aux = textField_4.getText();
+		String aux = textField_4.getText(); //Pega a informação digitada pelo usuario para ser a base do teste de duração do teste
 		int tempoTeste = Integer.parseInt(aux) * 1000;
 		int valor = 0;
-		long tempoInicial = System.currentTimeMillis();
-		while (System.currentTimeMillis() - tempoInicial < tempoTeste) {
+		long tempoInicial = System.currentTimeMillis(); //Aqui salva o tempo inicial, de início do teste
+		while (System.currentTimeMillis() - tempoInicial < tempoTeste) { //Enquanto o tempo de duração do teste for maior que a variação do tempo de verificação e o tempo inicial, continua enviando pacotes
 			byte[] dados = new byte[Integer.parseInt(textField_3.getText())];
 			byte[] auxiliar = new byte[Integer.parseInt(textField_3.getText()) - 1];
 			ByteBuffer buff = ByteBuffer.wrap(dados);
-			BitSet cabecalho = new BitSet(8);
+			BitSet cabecalho = new BitSet(8); //Aqui começa a ser setado o cabeçalho
 			cabecalho.set(0);
 			switch (valor) {
 
@@ -381,7 +372,6 @@ public class Cliente {
 				break;
 			default:
 			}
-			System.out.println(valor + " " + cabecalho);
 			valor++;
 			if (valor == 4) {
 				valor = 0;
@@ -392,14 +382,13 @@ public class Cliente {
 			dados = buff.array();
 			DatagramPacket enviarDados = new DatagramPacket(dados, dados.length, ip, serverPorta);
 			if (contadorPacotes == 0) {
-				tempoInicialEnvio = System.currentTimeMillis();
+				tempoInicialEnvio = System.currentTimeMillis(); //Aqui seta o tempo inicial de envio
 			}
-			usuario.send(enviarDados);
+			usuario.send(enviarDados); //Aqui envia o pacote
 			contadorPacotes++;
 			qtdBytesEnviados = qtdBytesEnviados + Integer.parseInt(textField_3.getText());
-			System.out.println(contadorPacotes - 1 + "\n" + qtdBytesEnviados);
 		}
-		emCurso = false;
+		emCurso = false; //Quando acaba o teste, seta a variável que diz que os pacotes estão sendo enviados para false
 	};
 
 }
