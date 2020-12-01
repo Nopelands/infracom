@@ -90,6 +90,7 @@ public class Servidor {
 		}
 		tcpSocket = new ServerSocket(porta);
 		recebendo = new DatagramSocket(porta);
+		recebendo.setReceiveBufferSize(5000000);
 		new Thread(receptorTCP).start();
 	}
 
