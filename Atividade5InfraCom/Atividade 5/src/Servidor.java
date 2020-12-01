@@ -74,7 +74,7 @@ public class Servidor {
 		contentPane.add(lblNewLabel_1);
 		servidor.setVisible(true);
 
-		try {
+		try { //Sincroniza com o servidor ntp, pegando o offset, utilizado para verificar a diferença em relação ao relógio do servidor
 			String ntpServer = "a.st1.ntp.br";
 
 			NTPUDPClient timeClient = new NTPUDPClient();
@@ -88,18 +88,18 @@ public class Servidor {
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
-		tcpSocket = new ServerSocket(porta);
-		recebendo = new DatagramSocket(porta);
-		new Thread(receptorTCP).start();
+		tcpSocket = new ServerSocket(porta); //inicialização do socket tcp
+		recebendo = new DatagramSocket(porta);//inicialização do socket udp
+		new Thread(receptorTCP).start(); //inicialização da thread para receber os pacotes tcp
 	}
 
 	public static Runnable receptorTCP = new Runnable() {
 		public void run() {
 			try {
-				Socket socketRecebimento = tcpSocket.accept();
+				Socket socketRecebimento = tcpSocket.accept(); //aceita a conexão tcp
 				InputStreamReader entrada = new InputStreamReader(socketRecebimento.getInputStream());
 				BufferedReader le = new BufferedReader(entrada);
-				String mensagem = le.readLine();
+				String mensagem = le.readLine(); //A partir daqui recebe as informações iniciais do cliente e prepara o programa servidor para receber dados udp
 				mensagem = mensagem + "\nPorta de destino: " + le.readLine() + "\nIP de destino: " + le.readLine()
 						+ "\nTamanho da mensagem: ";
 				qtdBytes = Integer.parseInt(le.readLine());
@@ -118,24 +118,22 @@ public class Servidor {
 					opcaoEscolhida = "Duração do teste";
 					mensagem = mensagem + opcaoEscolhida + " = " + digiteAqui + " segundos";
 				}
-				new Thread(receptorUDP).start();
+				new Thread(receptorUDP).start(); //Após o programa servidor ser preparado para receber os pacotes pelo udp, inicializa a thread udp
 				DataOutputStream saida = new DataOutputStream(socketRecebimento.getOutputStream());
-				saida.write("1\n".getBytes());
+				saida.write("1\n".getBytes()); //Aqui avisa ao programa cliente que o servidor está pronto para receber os pacotes udp
 				InputStreamReader sinalTeste = new InputStreamReader(socketRecebimento.getInputStream());
 				BufferedReader le2 = new BufferedReader(sinalTeste);
-				String sinal = le2.readLine();
-				Thread.currentThread().sleep(3000);
-				emCurso = false;
+				String sinal = le2.readLine(); //Essa string serve para armazenar um sinal quando o cliente acabar de enviar os pacotes udp
+				Thread.currentThread().sleep(3000); //Após o sinal, espera-se três segundos, para caso o pacote que enviou o sinal chegue antes de pacotes udps no meio do caminho
+				emCurso = false; //Seta o sinal de cliente enviando dados para false
 				qtdBytesEnviados = le2.readLine();
 				String mensagem2 = le2.readLine();
 				Long tempoInicialEnvio = Long.parseLong(mensagem2);
 				Long tempoEnvio = (tempo + offsetValue) - tempoInicialEnvio;
-				System.out.println(qtdBytesEnviados + "\n" + tempoEnvio);
-				double taxaTransferencia = ((double) Long.parseLong(qtdBytesEnviados) / tempoEnvio) * 1000;
-				System.out.println(taxaTransferencia);
+				double taxaTransferencia = ((double) Long.parseLong(qtdBytesEnviados) / tempoEnvio) * 1000; //Calculo a taxa de transferência
 				String mensagem3 = le2.readLine();
 				contadorPacotesEnviados = Integer.parseInt(mensagem3);
-				double perdaPacotes = (1 - (double) contadorPacotes / contadorPacotesEnviados) * 100;
+				double perdaPacotes = (1 - (double) contadorPacotes / contadorPacotesEnviados) * 100; //Calculo da perda de pacotes
 				textPane.setText("Porta de origem: " + mensagem.substring(1));
 				String mensagemTaxa;
 				if (taxaTransferencia > 1000000) {
@@ -147,13 +145,13 @@ public class Servidor {
 				} else {
 					mensagemTaxa = " Bytes/s\nPorcentagem de perda de pacotes: ";
 				}
-				textPane.setText(textPane.getText() + "\nQuantidade de bytes enviados: " + qtdBytesEnviados
+				textPane.setText(textPane.getText() + "\nQuantidade de bytes enviados: " + qtdBytesEnviados //Printa no textPane o resultado dos testes
 						+ " bytes\nQuantidade de bytes recebidos: " + Integer.toString(qtdBytesRecebidos)
 						+ " bytes\nTaxa de transferência: " + String.format("%.3f", taxaTransferencia) + mensagemTaxa
 						+ String.format("%.3f", perdaPacotes) + "%\nJitter mínimo: " + Long.toString(minimo)
 						+ " ms\nJitter máximo: " + Long.toString(maximo) + " ms\nJitter médio: "
 						+ String.format("%.3f", media) + " ms\n");
-				saida.write(textPane.getText().getBytes());
+				saida.write(textPane.getText().getBytes()); //Envia para o cliente o resultado dos testes
 			} catch (IOException | InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -167,16 +165,15 @@ public class Servidor {
 			long tempoAnterior = -1;
 			long total = 0;
 			int contadorIntervalos = 0;
-			while (emCurso) {
-				byte[] armazenador = new byte[qtdBytes];
+			while (emCurso) { //Enquanto o cliente estiver enviando pacotes, fica nesse while para receber pacotes
+				byte[] armazenador = new byte[qtdBytes]; //seta o tamanho do array de bytes para ser igual ao que o cliente setou
 				DatagramPacket pacoteRecebido = new DatagramPacket(armazenador, armazenador.length);
 				try {
-					recebendo.receive(pacoteRecebido);
-					tempo = System.currentTimeMillis();
+					recebendo.receive(pacoteRecebido); //Aqui o pacote é recebido
+					tempo = System.currentTimeMillis(); //Aqui salva o tempo que o último pacote até o momento chegou
 					contadorPacotes++;
-					byte[] auxCabeca = { armazenador[0] };
+					byte[] auxCabeca = { armazenador[0] }; //A partir daqui, analiza o cabeçalho do pacote udp
 					BitSet cabecalho = BitSet.valueOf(auxCabeca);
-					System.out.println(cabecalho);
 					int value = 0;
 					if (cabecalho.get(3)) {
 						if (cabecalho.get(4)) {
@@ -188,7 +185,7 @@ public class Servidor {
 						value = 2;
 					}
 
-					if ((value == anterior + 1) || (value == 0 && anterior == 3)) {
+					if ((value == anterior + 1) || (value == 0 && anterior == 3)) { //Aqui é calculado os jitters mínimo e máximo
 						if (minimo > tempo - tempoAnterior) {
 							minimo = tempo - tempoAnterior;
 						}
@@ -199,11 +196,9 @@ public class Servidor {
 						contadorIntervalos++;
 
 					}
-					System.out.println(contadorIntervalos + " " + value);
 					anterior = value;
 					tempoAnterior = tempo;
-					media = (double) total / contadorIntervalos;
-					System.out.println(minimo + "\n" + maximo + "\n" + media);
+					media = (double) total / contadorIntervalos; //Aqui é calculado o jitter médio
 					qtdBytesRecebidos += qtdBytes;
 				} catch (IOException e) {
 					e.printStackTrace();
