@@ -208,7 +208,7 @@ public class Cliente {
 				clienteTCP = new ServerSocket(myPorta);
 				usuario = new DatagramSocket(myPorta);
 				ip = InetAddress.getByName(textField_2.getText());
-				usuario.setSendBufferSize(50000000);
+				usuario.setSendBufferSize(5000000);
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
